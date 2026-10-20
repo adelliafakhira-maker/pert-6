@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Studi Kasus: Pemantauan Deforestasi dengan Citra Satelit dan AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;800&family=Public+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fff0f6;--fg:#3d1727;--mut:#86596c;--card:#ffffff;--line:#f6cddd;--acc:#d6336c;--on:#ffffff;--pos:#0b8f72;--neg:#c2410c;--warn:#a05a00;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#2a1220;--fg:#ffe9f2;--mut:#d9a3bb;--card:#381a2c;--line:#5a2944;--acc:#ff8fbd;--on:#2a1220;--pos:#4fd1a5;--neg:#ffa266;--warn:#f0c24f}}
+:root[data-theme="dark"]{--bg:#2a1220;--fg:#ffe9f2;--mut:#d9a3bb;--card:#381a2c;--line:#5a2944;--acc:#ff8fbd;--on:#2a1220;--pos:#4fd1a5;--neg:#ffa266;--warn:#f0c24f}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.65 "Public Sans",system-ui,sans-serif}
+main{max-width:920px;margin:0 auto;padding:24px 18px 56px}
+h1,h2,h3{font-family:Fraunces,Georgia,serif;line-height:1.15;margin:0 0 .5em}
+h1{font-size:clamp(2rem,6vw,3rem);font-weight:800;color:var(--acc)}
+h2{font-size:1.5rem;margin-top:2.2em}
+h3{font-size:1.05rem;margin-top:1em}
+.lead{color:var(--mut);font-size:1.08rem;max-width:62ch}
+p{max-width:68ch}
+.lab{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-top:14px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:700px){.two{grid-template-columns:1fr}}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin:14px 0}
+.grid div{background:var(--card);border-left:4px solid var(--acc);border-radius:0 10px 10px 0;padding:8px 14px}
+.grid b{display:block}.grid span{color:var(--mut);font-size:.92rem}
+.box{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--bg)}
+.box h3{margin-top:0}
+label{display:block;font-weight:600;font-size:.92rem;margin:8px 0 4px}
+label output{float:right;color:var(--acc)}
+input[type=range]{width:100%;accent-color:var(--acc)}
+input[type=checkbox]{accent-color:var(--acc);margin-right:6px}
+.chk{display:inline-block;margin:6px 14px 0 0;font-weight:400}
+button{font:inherit;font-weight:600;border:0;border-radius:999px;padding:7px 16px;background:var(--acc);color:var(--on);cursor:pointer;margin:4px 6px 4px 0}
+button.alt{background:transparent;color:var(--fg);border:1px solid var(--acc)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--warn);outline-offset:2px}
+canvas{width:100%;height:auto;display:block;border-radius:10px;border:1px solid var(--line);image-rendering:pixelated;background:#2f7d4f}
+svg{width:100%;height:auto;display:block;background:var(--card);border-radius:10px;border:1px solid var(--line)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.85rem;color:var(--mut);margin:8px 0}
+.dot{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px;border:1px solid rgba(0,0,0,.25)}
+.stat{display:flex;gap:20px;flex-wrap:wrap;margin:10px 0}
+.stat b{display:block;font-size:1.3rem;font-family:Fraunces,serif;color:var(--acc)}.stat span{color:var(--mut);font-size:.85rem}
+.status{font-weight:600;color:var(--acc);min-height:1.6em}
+.bar{display:grid;grid-template-columns:130px 1fr 48px;gap:8px;align-items:center;margin:6px 0;font-size:.92rem}
+.bar i{display:block;height:16px;border-radius:8px;background:var(--acc);transition:width .2s}
+.bar .tr{background:var(--bg);border-radius:8px;border:1px solid var(--line)}
+.bar.top i{background:var(--pos)}
+.stack{display:flex;height:26px;border-radius:8px;overflow:hidden;border:1px solid var(--line);margin:10px 0}
+.stack div{height:100%}
+.chain{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0}
+.chain span{background:var(--bg);border:1px solid var(--acc);border-radius:10px;padding:4px 12px;font-size:.92rem}
+.chain em{font-style:normal;color:var(--acc);font-weight:700}
+.tw{overflow-x:auto}table{border-collapse:collapse;width:100%}
+table.cm{width:auto}table.cm td,table.cm th{text-align:center;border:1px solid var(--line);padding:8px 14px}
+.cap{color:var(--mut);font-size:.88rem;margin:4px 0 0}
+</style>
+</head>
+<body>
+<main>
+<h1>Memantau deforestasi dengan citra satelit dan AI</h1>
+<p class="lead">Studi kasus dari materi “Attributing Direct Drivers to Deforestation Alerts with Satellite Imagery and AI”. Sebuah tim pemantau hutan menerima peringatan deforestasi dan harus menjawab satu pertanyaan: apa penyebabnya?</p>
+
+<section>
+<h2>Ringkasan materi</h2>
+<div class="grid">
+<div><b>1. Pemantauan dengan citra satelit</b><span>Sentinel-2 (optik) kaya detail vegetasi tetapi terhalang awan. Sentinel-1 (radar) menembus awan. Gabungan keduanya memantau hutan pada resolusi 10 meter dengan pembaruan bulanan.</span></div>
+<div><b>2. Deep learning</b><span>Model CNN dilatih mengklasifikasi penyebab gangguan: pertanian, pertambangan, penebangan, dan gangguan alami, dari ukuran, bentuk, dan kondisi area sekitar.</span></div>
+<div><b>3. Pola deforestasi per wilayah</b><span>Amerika Selatan: pertanian skala besar dan kebakaran. Afrika Tengah: pertanian skala kecil dan penebangan selektif. Indonesia dan Malaysia: beragam penyebab.</span></div>
+<div><b>4. Musim dan keterkaitan penyebab</b><span>Kebakaran dan pembukaan lahan meningkat pada musim kemarau. Penyebab bisa saling berkaitan, misalnya Kongo (emas dan pertanian) dan Bolivia (jalan, penebangan, kebakaran).</span></div>
+<div><b>5. Keterbatasan model</b><span>Masih sulit membedakan kebakaran dan banjir, serta mengenali penyebab tidak langsung. Pembaruan bulanan membatasi penggunaan untuk penanganan darurat. Gangguan satelit dapat membuat deforestasi tak terdeteksi.</span></div>
+<div><b>6. Pengembangan sistem</b><span>Model dilatih dengan lebih banyak data kebakaran dan banjir. Hasil pantauan dipublikasikan lewat Global Forest Watch.</span></div>
+</div>
+</section>
+
+<section>
+<h2>Demo 1: gabungan radar dan optik menembus awan</h2>
+<p>Peta di bawah berisi tiga area hutan yang dibuka (kenyataan di lapangan). Naikkan tutupan awan, lalu bandingkan seberapa banyak area yang ketahuan oleh optik saja, radar saja, dan gabungan. Satu petak mewakili sekitar 10 × 10 meter. Angka akurasi sensor adalah asumsi ilustrasi.</p>
+<div class="lab">
+<label for="cov">Tutupan awan <output id="ocov"></output></label>
+<input id="cov" type="range" min="0" max="90" value="40" step="5">
+<div role="group" aria-label="Pilih tampilan sensor" id="mbtn"></div>
+<canvas id="cv" width="360" height="200" role="img" aria-label="Peta deteksi deforestasi"></canvas>
+<div class="legend">
+<span><i class="dot" style="background:#e8590c"></i>Terdeteksi</span>
+<span><i class="dot" style="background:#8a5a2b"></i>Lahan terbuka / terlewat</span>
+<span><i class="dot" style="background:#f2c94c"></i>Alarm palsu</span>
+<span><i class="dot" style="background:#f1f1f4"></i>Awan</span>
+</div>
+<div class="stat">
+<div><b id="d1">-</b><span>deforestasi terdeteksi</span></div>
+<div><b id="d2">-</b><span>alarm palsu</span></div>
+</div>
+<div class="status" id="dnote" role="status"></div>
+</div>
+</section>
+
+<section>
+<h2>Demo 2: menentukan penyebab deforestasi (model CNN sederhana)</h2>
+<p>Model CNN menilai ukuran, bentuk, dan kondisi area sekitar. Demo ini memakai aturan berbobot yang disederhanakan untuk meniru cara berpikir model, bukan CNN sungguhan. Pilih contoh atau atur sendiri fiturnya.</p>
+<div class="lab">
+<div>
+<button class="alt" data-p="0">Kebun skala besar</button>
+<button class="alt" data-p="1">Tambang emas</button>
+<button class="alt" data-p="2">Jalur penebangan</button>
+<button class="alt" data-p="3">Bekas kebakaran</button>
+</div>
+<div class="two">
+<div><label for="sz">Ukuran area <output id="osz"></output></label><input id="sz" type="range" min="0" max="100" value="50"></div>
+<div><label for="sh">Bentuk <output id="osh"></output></label><input id="sh" type="range" min="0" max="100" value="50"></div>
+</div>
+<div>
+<label class="chk"><input type="checkbox" id="road">Dekat jalan baru</label>
+<label class="chk"><input type="checkbox" id="water">Dekat sungai</label>
+<label class="chk"><input type="checkbox" id="burn">Ada bekas api</label>
+<label class="chk"><input type="checkbox" id="dry">Musim kemarau</label>
+</div>
+<div id="bars" aria-live="polite" style="margin-top:12px"></div>
+<div class="status" id="cnote" role="status"></div>
+</div>
+</section>
+
+<section>
+<h2>Demo 3: pola wilayah, musim, dan keterkaitan penyebab</h2>
+<p>Komposisi penyebab di bawah adalah ilustrasi untuk belajar, bukan data resmi.</p>
+<div class="lab">
+<div role="group" aria-label="Pilih wilayah" id="rtabs"></div>
+<div class="stack" id="rstack" role="img"></div>
+<div class="legend" id="rleg"></div>
+<p id="rtxt" style="margin:0"></p>
+
+<h3>Musim kemarau dan lonjakan peringatan</h3>
+<svg id="mchart" viewBox="0 0 480 200" role="img" aria-label="Indeks peringatan deforestasi per bulan, tertinggi pada musim kemarau"></svg>
+<p class="cap">Ilustrasi: batang pink adalah musim kemarau (kebakaran dan pembukaan lahan meningkat).</p>
+
+<h3>Satu peringatan, penyebab saling berkaitan</h3>
+<div role="group" aria-label="Pilih kasus" id="ktabs"></div>
+<div class="chain" id="kchain"></div>
+<p id="ktxt" style="margin:0"></p>
+</div>
+</section>
+
+<section>
+<h2>Demo 4: keterbatasan dan pengembangan model</h2>
+<div class="lab">
+<h3>Membedakan kebakaran dan banjir</h3>
+<label for="nd">Data latih kebakaran dan banjir <output id="ond"></output></label>
+<input id="nd" type="range" min="1" max="100" value="10">
+<div class="two">
+<div class="tw"><table class="cm" aria-label="Confusion matrix kebakaran dan banjir">
+<tr><th></th><th>Prediksi kebakaran</th><th>Prediksi banjir</th></tr>
+<tr><th>Aktual kebakaran</th><td id="m1"></td><td id="m2"></td></tr>
+<tr><th>Aktual banjir</th><td id="m3"></td><td id="m4"></td></tr>
+</table><p class="cap">Dari 100 citra uji per kelas (simulasi).</p></div>
+<div class="stat"><div><b id="acc">-</b><span>akurasi rata-rata</span></div></div>
+</div>
+<p class="cap">Penyebab tidak langsung (misalnya harga komoditas atau kebijakan) tetap tidak bisa dikenali dari citra.</p>
+
+<h3>Pembaruan bulanan tidak cocok untuk darurat</h3>
+<label for="dy">Kebakaran terjadi pada hari ke- <output id="ody"></output></label>
+<input id="dy" type="range" min="1" max="30" value="3">
+<label class="chk"><input type="checkbox" id="sat">Satelit terganggu pada siklus ini</label>
+<div class="status" id="lat" role="status"></div>
+</div>
+</section>
+
+<section>
+<h2>Kesimpulan</h2>
+<p>Menggabungkan radar dan optik membuat pemantauan hutan tetap berjalan saat berawan, dan CNN mengubah peringatan mentah menjadi informasi penyebab yang bisa ditindaklanjuti. Namun model masih tertukar pada kebakaran dan banjir, tidak melihat penyebab tidak langsung, dan terlambat untuk kejadian darurat. Karena itu hasilnya perlu diverifikasi manusia dan terus dilatih dengan data baru sebelum dipublikasikan, misalnya lewat Global Forest Watch.</p>
+</section>
+</main>
+
+<script>
+const $=id=>document.getElementById(id);
+function rng(s){return()=>{s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+
+// ---------- Demo 1 ----------
+const W=36,H=20,CS=10,N=W*H,R=rng(21);
+const truth=new Uint8Array(N);
+[[8,6,5,4],[24,5,4,3],[20,14,6,3]].forEach(([cx,cy,rx,ry])=>{
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const dx=(x-cx)/rx,dy=(y-cy)/ry;if(dx*dx+dy*dy<=1+(R()-.5)*.4)truth[y*W+x]=1}
+});
+const gn=[];for(let i=0;i<35;i++)gn.push(R());
+const F=new Float32Array(N);
+for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+  const fx=x/(W-1)*6,fy=y/(H-1)*4,x0=Math.min(5,Math.floor(fx)),y0=Math.min(3,Math.floor(fy)),tx=fx-x0,ty=fy-y0;
+  const a=gn[y0*7+x0],b=gn[y0*7+x0+1],c=gn[(y0+1)*7+x0],d=gn[(y0+1)*7+x0+1];
+  F[y*W+x]=(a*(1-tx)+b*tx)*(1-ty)+(c*(1-tx)+d*tx)*ty;
+}
+const sorted=Array.from(F).sort((a,b)=>a-b);
+const r1=Array.from({length:N},R),r2=Array.from({length:N},R),fa=Array.from({length:N},R);
+let mode='fus';
+const MODES=[['real','Kenyataan'],['s2','Optik (Sentinel-2)'],['s1','Radar (Sentinel-1)'],['fus','Gabungan']];
+const ctx=$('cv').getContext('2d');
+function sim(){
+  const cover=+$('cov').value,thr=cover?sorted[Math.min(N-1,Math.floor(cover/100*N))]:-1;
+  const o={cell:new Uint8Array(N),cloud:new Uint8Array(N),tp:0,tot:0,fp:0};
+  for(let i=0;i<N;i++){
+    const cl=F[i]<thr,t=truth[i],s2=t&&!cl&&r1[i]<.95,s1=t?r2[i]<.8:fa[i]<.04;
+    o.cloud[i]=cl?1:0;if(t)o.tot++;
+    let c=0;
+    if(mode==='real')c=t?2:0;
+    else if(mode==='s2'){c=cl?4:(t?(s2?1:2):0)}
+    else if(mode==='s1'){c=t?(s1?1:2):(s1?3:0)}
+    else{c=t?((s2||s1)?1:2):((s1&&cl)?3:0)}
+    o.cell[i]=c;
+    if(mode!=='real'){if(c===1)o.tp++;if(c===3)o.fp++}
+  }
+  return o;
+}
+const COL=['#2f7d4f','#e8590c','#8a5a2b','#f2c94c','#f1f1f4'];
+function r1d(){
+  $('ocov').textContent=$('cov').value+'%';
+  const o=sim();
+  ctx.fillStyle=mode==='s1'?'#4a5a63':'#2f7d4f';ctx.fillRect(0,0,W*CS,H*CS);
+  for(let i=0;i<N;i++){
+    const x=(i%W)*CS,y=Math.floor(i/W)*CS,c=o.cell[i];
+    if(c){ctx.fillStyle=COL[c];ctx.fillRect(x,y,CS,CS)}
+    if(mode==='fus'&&o.cloud[i]){ctx.fillStyle='rgba(241,241,244,.45)';ctx.fillRect(x,y,CS,CS)}
+  }
+  let tot=0;for(let i=0;i<N;i++)tot+=truth[i];
+  if(mode==='real'){$('d1').textContent=tot+' petak dibuka';$('d2').textContent='-';$('dnote').textContent='Ini kenyataan di lapangan: tiga area hutan dibuka.';return}
+  $('d1').textContent=o.tp+' dari '+tot+' ('+Math.round(o.tp/tot*100)+'%)';$('d2').textContent=o.fp+' petak';
+  $('dnote').textContent={
+   s2:'Optik sangat detail, tetapi area di bawah awan tidak terlihat sama sekali.',
+   s1:'Radar menembus awan dan menjangkau semua area, tetapi lebih berisik sehingga muncul alarm palsu.',
+   fus:'Gabungan menutup area berawan dengan radar, dan optik memastikan petak yang tidak berawan sehingga alarm palsu berkurang.'}[mode];
+}
+MODES.forEach(([k,l])=>{
+  const b=document.createElement('button');b.textContent=l;b.className=k===mode?'':'alt';b.dataset.k=k;
+  b.setAttribute('aria-pressed',k===mode);
+  b.onclick=()=>{mode=k;[...$('mbtn').children].forEach(x=>{x.className=x.dataset.k===k?'':'alt';x.setAttribute('aria-pressed',x.dataset.k===k)});r1d()};
+  $('mbtn').appendChild(b);
+});
+$('cov').oninput=r1d;r1d();
+
+// ---------- Demo 2 ----------
+const DR=['Pertanian','Pertambangan','Penebangan','Gangguan alami'];
+const PRE=[[92,90,1,0,0,0],[57,50,0,1,0,0],[35,10,1,0,0,0],[73,50,0,0,1,1]];
+function sizeHa(v){return 0.5*Math.pow(400,v/100)}
+function shapeName(v){return v<30?'memanjang':v>70?'kotak teratur':'tak beraturan'}
+function c2(){
+  const v=+$('sz').value,sh=+$('sh').value,road=+$('road').checked,water=+$('water').checked,burn=+$('burn').checked,dry=+$('dry').checked;
+  const ha=sizeHa(v);$('osz').textContent=(ha<10?ha.toFixed(1):Math.round(ha)).toString().replace('.',',')+' ha';$('osh').textContent=shapeName(sh);
+  const s=v/100,el=Math.max(0,(50-sh)/50),bx=Math.max(0,(sh-50)/50),ir=1-Math.abs(sh-50)/50;
+  const z=[
+   3*bx+2*s+.6*road+.5*burn-.8*water-1+.4*dry,
+   2.2*ir+2.8*water-1.2*burn-.5,
+   3.2*el+2*road-1.8*s-burn-.2,
+   3.2*burn+.8*ir-1.5*road-1+.4*dry*burn];
+  const m=Math.max(...z),e=z.map(x=>Math.exp(x-m)),sum=e.reduce((a,b)=>a+b),p=e.map(x=>x/sum);
+  const idx=p.map((x,i)=>i).sort((a,b)=>p[b]-p[a]);
+  $('bars').innerHTML=DR.map((d,i)=>`<div class="bar${i===idx[0]?' top':''}"><span>${d}</span><div class="tr"><i style="width:${(p[i]*100).toFixed(0)}%"></i></div><b>${Math.round(p[i]*100)}%</b></div>`).join('');
+  $('cnote').textContent=(p[idx[0]]-p[idx[1]]<.15)
+   ?'Hasil ambigu: '+DR[idx[0]]+' dan '+DR[idx[1]]+' hampir seimbang. Penyebab bisa saling berkaitan, jadi perlu verifikasi manusia.'
+   :'Penyebab paling mungkin: '+DR[idx[0]]+'.';
+}
+['sz','sh','road','water','burn','dry'].forEach(id=>$(id).oninput=c2);
+document.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{
+  const p=PRE[+b.dataset.p];$('sz').value=p[0];$('sh').value=p[1];
+  $('road').checked=!!p[2];$('water').checked=!!p[3];$('burn').checked=!!p[4];$('dry').checked=!!p[5];c2();
+});
+c2();
+
+// ---------- Demo 3 ----------
+const CC=['#d6336c','#f08c00','#7048e8','#0b8f72'];
+const CN=['Pertanian','Penebangan','Pertambangan','Gangguan alami (termasuk kebakaran)'];
+const REG={
+ 'Amerika Selatan':{v:[62,12,8,18],t:'Didominasi pertanian skala besar dan kebakaran hutan.'},
+ 'Afrika Tengah':{v:[60,20,8,12],t:'Banyak pertanian skala kecil dan penebangan selektif.'},
+ 'Indonesia dan Malaysia':{v:[38,24,16,22],t:'Menghadapi berbagai penyebab sekaligus, sehingga klasifikasi per kasus lebih penting.'}
+};
+let reg='Amerika Selatan';
+function r3(){
+  $('rtabs').innerHTML='';
+  Object.keys(REG).forEach(k=>{
+    const b=document.createElement('button');b.textContent=k;b.className=k===reg?'':'alt';b.setAttribute('aria-pressed',k===reg);
+    b.onclick=()=>{reg=k;r3()};$('rtabs').appendChild(b);
+  });
+  const d=REG[reg];
+  $('rstack').setAttribute('aria-label','Komposisi penyebab di '+reg);
+  $('rstack').innerHTML=d.v.map((v,i)=>`<div style="width:${v}%;background:${CC[i]}" title="${CN[i]} ${v}%"></div>`).join('');
+  $('rleg').innerHTML=d.v.map((v,i)=>`<span><i class="dot" style="background:${CC[i]}"></i>${CN[i]} ${v}%</span>`).join('');
+  $('rtxt').textContent=d.t;
+}
+r3();
+(function(){
+  const M=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'],V=[40,38,42,45,60,85,100,95,80,55,45,40];
+  let h='<line x1="30" y1="170" x2="470" y2="170" stroke="var(--line)"/>';
+  V.forEach((v,i)=>{
+    const x=40+i*36,hh=v*1.35,dry=i>=5&&i<=8;
+    h+=`<rect x="${x}" y="${170-hh}" width="26" height="${hh}" rx="4" fill="${dry?'var(--acc)':'var(--mut)'}" opacity="${dry?1:.4}"/><text x="${x+13}" y="188" text-anchor="middle" font-size="11" fill="var(--mut)">${M[i]}</text>`;
+  });
+  $('mchart').innerHTML=h;
+})();
+const CASE={
+ 'Kongo':{c:['Tambang emas','Pembukaan lahan dan pendatang','Pertanian meningkat'],t:'Di Kongo, penambangan emas dikaitkan dengan peningkatan pertanian di sekitarnya.'},
+ 'Bolivia':{c:['Pembangunan jalan','Penebangan','Kebakaran'],t:'Di Bolivia, pembangunan jalan dikaitkan dengan penebangan dan kebakaran.'}
+};
+let cs='Kongo';
+function r4(){
+  $('ktabs').innerHTML='';
+  Object.keys(CASE).forEach(k=>{
+    const b=document.createElement('button');b.textContent=k;b.className=k===cs?'':'alt';b.setAttribute('aria-pressed',k===cs);
+    b.onclick=()=>{cs=k;r4()};$('ktabs').appendChild(b);
+  });
+  $('kchain').innerHTML=CASE[cs].c.map(x=>`<span>${x}</span>`).join('<em>→</em>');
+  $('ktxt').textContent=CASE[cs].t+' Satu peringatan bisa punya lebih dari satu penyebab.';
+}
+r4();
+
+// ---------- Demo 4 ----------
+function c5(){
+  const n=+$('nd').value;$('ond').textContent=n+' ribu citra';
+  const a=.97-.32*Math.exp(-n/25),af=Math.round(a*100),ab=Math.round((a-.03)*100);
+  $('m1').textContent=af;$('m2').textContent=100-af;$('m3').textContent=100-ab;$('m4').textContent=ab;
+  $('acc').textContent=Math.round((af+ab)/2)+'%';
+}
+function c6(){
+  const d=+$('dy').value;$('ody').textContent=d+' dari siklus 30 hari';
+  const w=30-d;
+  $('lat').textContent=$('sat').checked
+   ?'Satelit terganggu: kebakaran ini tidak terdeteksi pada siklus ini dan baru mungkin terlihat bulan depan.'
+   :(w===0?'Peringatan muncul pada pembaruan hari ini.':'Peringatan baru muncul sekitar '+w+' hari lagi. Terlalu lambat untuk penanganan darurat.');
+}
+$('nd').oninput=c5;$('dy').oninput=c6;$('sat').onchange=c6;
+c5();c6();
+</script>
+</body>
+</html>
